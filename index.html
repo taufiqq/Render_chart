@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { margin: 0; background: white; overflow: hidden; }
+        canvas { width: 1920px; height: 1080px; }
+    </style>
+</head>
+<body>
+    <canvas id="raceCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('raceCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 1920;
+        canvas.height = 1080;
+
+        const dataByYear = {
+            1960: [{ name: "Watching TV", val: 100, color: "#ed942d" }, { name: "Eating", val: 80, color: "#a35483" }, { name: "Radio", val: 90, color: "#61b2a7" }, { name: "Housework", val: 70, color: "#f29c38" }, { name: "Cooking", val: 60, color: "#59b1b6" }, { name: "Exercising", val: 20, color: "#38a37f" }],
+            1965: [{ name: "Watching TV", val: 158.42, color: "#ed942d" }, { name: "Eating", val: 56.93, color: "#a35483" }, { name: "Radio", val: 49.54, color: "#61b2a7" }, { name: "Housework", val: 47.19, color: "#f29c38" }, { name: "Cooking", val: 45.26, color: "#59b1b6" }, { name: "Exercising", val: 30.60, color: "#38a37f" }],
+            1970: [{ name: "Watching TV", val: 180, color: "#ed942d" }, { name: "Eating", val: 65, color: "#a35483" }, { name: "Radio", val: 30, color: "#61b2a7" }, { name: "Housework", val: 85, color: "#f29c38" }, { name: "Cooking", val: 95, color: "#59b1b6" }, { name: "Exercising", val: 50, color: "#38a37f" }]
+        };
+
+        const years = [1960, 1965, 1970];
+        let barPositions = {};
+        const lerpSpeed = 0.1;
+
+        function getInterpolatedData(year) {
+            const startYear = years.filter(y => y <= year).pop();
+            const endYear = years.find(y => y > year) || startYear;
+            const fraction = endYear === startYear ? 0 : (year - startYear) / (endYear - startYear);
+
+            return dataByYear[startYear].map(startObj => {
+                const endObj = dataByYear[endYear].find(e => e.name === startObj.name);
+                return {
+                    name: startObj.name,
+                    color: startObj.color,
+                    val: startObj.val + (endObj.val - startObj.val) * fraction
+                };
+            }).sort((a, b) => b.val - a.val);
+        }
+
+        // FUNGSI INI AKAN DIPANGGIL OLEH NODE.JS
+        window.renderFrame = function(currentDecimalYear) {
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, 1920, 1080);
+            
+            const items = getInterpolatedData(currentDecimalYear);
+            const marginX = 400;
+            const barHeight = 70;
+            const gap = 30;
+            const maxBarWidth = 1100;
+            const maxValue = 220;
+
+            ctx.fillStyle = "#f0f0f0";
+            ctx.font = "bold 300px sans-serif";
+            ctx.textAlign = "right";
+            ctx.fillText(Math.floor(currentDecimalYear), 1820, 980);
+
+            items.forEach((item, index) => {
+                const targetY = 150 + index * (barHeight + gap);
+                if (barPositions[item.name] === undefined) barPositions[item.name] = targetY;
+                barPositions[item.name] += (targetY - barPositions[item.name]) * lerpSpeed;
+
+                const currentY = barPositions[item.name];
+                const barWidth = (item.val / maxValue) * maxBarWidth;
+
+                ctx.fillStyle = item.color;
+                ctx.fillRect(marginX, currentY, barWidth, barHeight);
+
+                ctx.fillStyle = "#333";
+                ctx.font = "bold 35px sans-serif";
+                ctx.textAlign = "right";
+                ctx.fillText(item.name, marginX - 30, currentY + barHeight / 1.6);
+
+                ctx.textAlign = "left";
+                ctx.fillStyle = "#444";
+                ctx.font = "500 35px sans-serif";
+                ctx.fillText(item.val.toFixed(2), marginX + barWidth + 20, currentY + barHeight / 1.6);
+            });
+        };
+    </script>
+</body>
+</html>
