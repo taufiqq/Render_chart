@@ -1,0 +1,28 @@
+name: Bar Chart Render
+on: workflow_dispatch # Supaya bisa diklik manual dari HP
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: |
+          npm install
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Run Render
+        run: node render.js
+
+      - name: Simpan Video
+        uses: upload-artifact@v3
+        with:
+          name: hasil-video
+          path: video_output.mp4
