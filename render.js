@@ -5,7 +5,15 @@ const path = require('path');
 
 (async () => {
     console.log("Membuka Browser...");
-    const browser = await puppeteer.launch({ headless: "new" });
+    const browser = await puppeteer.launch({ 
+    headless: true, // Diubah dari "new" menjadi true
+    args: [
+        '--no-sandbox', 
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage', // Tambahan agar tidak gampang crash di server
+        '--disable-gpu'            // Server tidak butuh GPU untuk screenshot
+        ] 
+    });
     const page = await browser.newPage();
     await page.setViewport({ width: 1920, height: 1080 });
 
